@@ -159,14 +159,18 @@ const deleteUser = (req, res) => {
 // 3) Routes
 // Middleware for routing
 const tourRouter = express.Router();
+const userRouter = express.Router();
 
 tourRouter.route('/').get(getAllTours).post(createTour);
 tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
 
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 
 // We want to use the middleware for this specific route "/api/v1/tours"
 // The following process is called mounting a new router on a route
 app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
 
 // 4) Start the server
 const port = 3000;
