@@ -162,11 +162,9 @@ app
   .get(getAllTours)
   .post(createTour);
 
-app
-  .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+// We want to use the middleware for this specific route "/api/v1/tours"
+// The following process is called mounting a new router on a route
+app.use('/api/v1/tours', tourRouter);
 
 // 4) Start the server
 const port = 3000;
