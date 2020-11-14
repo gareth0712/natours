@@ -4,7 +4,8 @@
   "description": "Learning Node, Express and MongoDB",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "debug": "ndb server.js"
   },
   "author": "Gareth Lau",
   "license": "ISC",
@@ -14,7 +15,8 @@
     "install": "^0.13.0",
     "mongoose": "^5.10.13",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "validator": "^13.1.17"
   },
   "devDependencies": {
     "eslint": "^7.13.0",
