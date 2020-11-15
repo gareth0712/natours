@@ -21,6 +21,23 @@ exports.getAllTours = async (req, res) => {
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
     let query = Tour.find(JSON.parse(queryStr));
 
+    // 2) Sorting
+    if (req.query.sort) {
+      // default: ascending
+      // api: /api/v1/tours?sort=price
+      // mongodb shell: db.tours.find().sort({ price : 1 });
+      // mongoose: .sort('price')
+      // Add a minus sign ahead of the parameter to indicate descending order
+      // api: /api/v1/tours?sort=-price
+      // mongodb shell: db.tours.find().sort({ price : -1 });
+      // mongoose: .sort('-price')
+      // Sorting with more than 1 criteria: sort('price ratingsAverage')
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
     // Execute query - Await only at the end after it finishes handling pagination, sort etc
     const tours = await query;
 
