@@ -2,8 +2,29 @@ const Tour = require('../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // Build query
+    // Query: method 1 - using filter in find
+    // const tours = await Tour.find({ difficulty: 'easy' });
+    // Query: method 2 - mongoose alternative method
+    // const tours = await Tour.find().where('difficulty').equals('easy');
 
+    // 1) Filtering
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // handle operators: gte, gt, lte, lt
+    // api: /api/v1/tours?difficulty=easy&duration[gte]=5
+    // mongodb shell: db.tours.find({ difficulty: 'easy', duration: { $gte: 5 } })
+    // mongoose: .find()
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // Execute query - Await only at the end after it finishes handling pagination, sort etc
+    const tours = await query;
+
+    // Send response
     res.status(200).json({
       status: 'success',
       results: tours.length,
