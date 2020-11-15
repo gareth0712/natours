@@ -1,4 +1,5 @@
 const Tour = require('../models/tourModel');
+const AppError = require('../utils/appError');
 
 exports.getAllTours = async (req, res) => {
   try {
@@ -57,6 +58,23 @@ exports.getAllTours = async (req, res) => {
       query = query.select('-__v');
     }
 
+    // 4) Pagination
+    // Convert req parameters to number and Set default pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    // page=1&limit=10 => skip 0 for 1-10
+    // page=2&limit=15 => skip 15 for 16-30
+    // page=3&limit=5 => skip 10 for 11-15
+    // formula for skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    // Verify if page returns no result
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new AppError('This page does not exist', 400);
+    }
+
     // Execute query - Await only at the end after it finishes handling pagination, sort etc
     const tours = await query;
 
@@ -71,7 +89,7 @@ exports.getAllTours = async (req, res) => {
   } catch (e) {
     res.status(404).json({
       status: 'fail',
-      message: e,
+      message: e.message,
     });
   }
 };
