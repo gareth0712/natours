@@ -38,6 +38,25 @@ exports.getAllTours = async (req, res) => {
       query = query.sort('-createdAt');
     }
 
+    // 3) Project fields to return from Query
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      console.log(fields);
+      // selecting certain field names is called 'projecting fields'
+      // we won't exclude _id even if we type out specific fields, but can exclude with '-_id'
+      // api: /api/v1/tours?fields=name,duration,price
+      // mongodb shell: db.tours.find({},{ name: 1, duration: 1, price: 1 })
+      // mongoose: query.select('name duration price');
+      query = query.select(fields);
+    } else {
+      // "__v" is used by Mongo internally but not meaningful to user
+      // Excluding field by default
+      // api: /api/v1/tours?fields=-__v
+      // mongodb shell: db.tours.find({}, { __v: 0 })
+      // mongoose: query.select('-__v');
+      query = query.select('-__v');
+    }
+
     // Execute query - Await only at the end after it finishes handling pagination, sort etc
     const tours = await query;
 

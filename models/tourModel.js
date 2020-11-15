@@ -50,6 +50,7 @@ const tourSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now(), // Mongo will auto-convert milliseconds to date
+    select: false,
   },
   startDates: [Date], // e.g. "2021-03-21" -> Mongo will auto-converted to JS Date; if it can't it will throw an error
 });
