@@ -102,6 +102,38 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
       data: null,
     });
 });
+
+exports.getTourStats = catchAsync(async (req, res, next) => {
+  // Returns an aggregate object
+  // stages in array will go through one by one
+  // Each stages can be placed more than one time
+  const stats = await Tour.aggregate([
+    {
+      $match: { ratingsAverage: { $gte: 4.5 } },
+    },
+    {
+      $group: {
+        //_id: null, // null indicates to do the operation on all documents as a group
+        // _id: '$difficulty', // grouped by difficulties
+        _id: { $toUpper: '$difficulty' },
+        num: { $sum: 1 }, // each document will go through this num counter and adds one to num
+        numRatings: { $sum: '$ratingsQuantity' },
+        avgRating: { $avg: '$ratingsAverage' },
+        avgPrice: { $avg: '$price' },
+        minPrice: { $min: '$price' },
+        maxPrice: { $max: '$price' },
+      },
+    },
+    {
+      $sort: { avgPrice: 1 }, // for ascending
+    },
+    // Match again will be executed too
+    // {
+    //   $match: { _id: { $ne: 'EASY' } },
+    // },
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: stats,
+  });
     });
-  }
-};
