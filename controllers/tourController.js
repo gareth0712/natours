@@ -10,6 +10,11 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
+exports.aliasTourName = (req, res, next) => {
+  req.query.fields = 'name';
+  next();
+};
+
 exports.getAllTours = catchAsync(async (req, res, next) => {
   // Build query
   // Query: method 1 - using filter in find
