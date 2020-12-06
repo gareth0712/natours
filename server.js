@@ -30,6 +30,19 @@ mongoose
   .catch((e) => console.log(`Error connecting to database: ${e}`));
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
+});
+
+// Events and events' listeners
+// Unhandled rejection: Errors / Bugs occurred in asynchoronous code but are not handled anywhere
+process.on('unhandledRejection', (err) => {
+  // name and message are defaults for error object in nodejs
+  console.log(err.name, err.message);
+  console.log('Unhandled rejection. Shutting down server...');
+  // End the application gracefully after the server finishes handling incoming requests
+  server.close(() => {
+    // Exit code 1 for uncaught exception
+    process.exit(1);
+  });
 });
