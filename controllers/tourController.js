@@ -110,14 +110,17 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
   // Each stages can be placed more than one time
   const stats = await Tour.aggregate([
     {
+      // match stage: Select or filter our ratings higher than 4.5
       $match: { ratingsAverage: { $gte: 4.5 } },
     },
     {
+      // group stage: group documents together using accumulator
       $group: {
+        // _id indicates what we want to group by
         //_id: null, // null indicates to do the operation on all documents as a group
         // _id: '$difficulty', // grouped by difficulties
         _id: { $toUpper: '$difficulty' },
-        num: { $sum: 1 }, // each document will go through this num counter and adds one to num
+        numTours: { $sum: 1 }, // each document will go through this num counter and adds one to num
         numRatings: { $sum: '$ratingsQuantity' },
         avgRating: { $avg: '$ratingsAverage' },
         avgPrice: { $avg: '$price' },
@@ -128,7 +131,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     {
       $sort: { avgPrice: 1 }, // for ascending
     },
-    // Match again will be executed too
+    // stages can repeat too
     // {
     //   $match: { _id: { $ne: 'EASY' } },
     // },
@@ -137,4 +140,4 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     status: 'success',
     data: stats,
   });
-    });
+});
