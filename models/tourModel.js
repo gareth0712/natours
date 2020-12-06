@@ -106,6 +106,52 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Mongoose middleware
+
+// 1. Document middleware
+// .pre + 'save' indicates that it is a Pre-save middleware / hook
+// It is called Document middleware as it has access to docment. It runs before .save() and .create().
+// .insertMany() won't trigger this middleware
+// Each middleware function in a pre-save hook has access to next and has 'this' keyboard pointing to the document
+tourSchema.pre('save', function (next) {
+  // We call this document middleware because we have access to the current document
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// .post indicates that it is a post-save middleware
+// It executes after all pre middleware completed
+// It has access to not only next function,but also to the document just saved
+// It no longer has the this keyword, but the doc object
+tourSchema.post('save', function (doc, next) {
+  console.log(doc._id);
+  next();
+});
+
+// Query Middleware
+// .pre + 'find' => Query middleware => 'this' in query middleware is a query object
+// When we execute Tour.find() in tourController, i.e. "await features.query",
+// right before it executes, this query middleware will be executed first
+// All the strings that start with find, e.g. findone
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } });
+  this.start = Date.now();
+  next();
+});
+
+// .post + 'find' => Post query middleware
+// Query has finished at this point and so the function has access to the query object with result
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${(Date.now() - this.start) / 1000} seconds`);
+  next();
+});
+
+// Aggregation Middleware
+// 'this' points to the current aggregation object
+// pipeline function returns an array of the aggregation pipelines with stages
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  next();
 });
 
 const Tour = mongoose.model('Tour', tourSchema);
