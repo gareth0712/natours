@@ -38,9 +38,9 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 });
 
 exports.getTour = catchAsync(async (req, res, next) => {
-    const tour = await Tour.findById(req.params.id);
-    // Shorthand for findOne()
-    // Tour.findOne({ _id: req.params.id })
+  const tour = await Tour.findById(req.params.id);
+  // Shorthand for findOne()
+  // Tour.findOne({ _id: req.params.id })
 
   // tour will return null if params don't match any document
   if (!tour) {
@@ -49,46 +49,47 @@ exports.getTour = catchAsync(async (req, res, next) => {
     return next(new AppError('No tour found with that ID', 404));
   }
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-    });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
+});
 
 exports.createTour = catchAsync(async (req, res, next) => {
-    const newTour = await Tour.create(req.body);
+  const newTour = await Tour.create(req.body);
 
-    res.status(201).json({
-      // 201 stands for created
-      status: 'success',
-      data: {
-        tour: newTour,
-      },
-    });
-    });
+  res.status(201).json({
+    // 201 stands for created
+    status: 'success',
+    data: {
+      tour: newTour,
+    },
+  });
+});
 
 exports.updateTour = catchAsync(async (req, res, next) => {
-    // findByIdAndUpdate method
-    // 1st: id to identify the doc
-    // 2nd: what data should be updated
-    // 3rd: other options: e.g. { new: true } means asking the method to return the updated tour
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+  // findByIdAndUpdate method
+  // 1st: id to identify the doc
+  // 2nd: what data should be updated
+  // 3rd: other options: e.g. { new: true } means asking the method to return the updated tour
+  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
   if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
   }
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-    });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
+});
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findByIdAndDelete(req.params.id);
@@ -97,10 +98,10 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
     return next(new AppError('No tour found with that ID', 404));
   }
 
-    res.status(204).json({
-      status: 'success',
-      data: null,
-    });
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
 });
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
