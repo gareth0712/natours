@@ -91,7 +91,21 @@ const tourSchema = new mongoose.Schema(
       default: false,
     },
   },
+  // Schema options
+  {
+    // When output as JSON / Object, we want virtuals to be part of the output
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+// Virtual properties are properties that are defined in schema but not persistent as they can be derived from other fields to save db space
+// Business logic better be handled in model instead of controller, which handles application logic
+tourSchema.virtual('durationWeeks').get(function () {
+  // 'this' is pointing to the current document
+  return this.duration / 7;
+});
+
 });
 
 const Tour = mongoose.model('Tour', tourSchema);
