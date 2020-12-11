@@ -1,5 +1,7 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -41,6 +43,26 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+});
+
+// pre save middleware (Encryption) runs between the moment we receive the data and persist the data into DB
+// 'this' has access to the current document
+userSchema.pre('save', async function (next) {
+  // Only run this function if pw was actually modified => avoid encrypting encrypted password again
+  // isModified: A method for all document to check if the field has been modified
+  if (!this.isModified('password')) return next();
+
+  // The Hash method of bcrypt encrypts the pw
+  // bcrypt's hashing algorithm protects the pw against brute force attack
+  // It salts the password before hashing. So even if the passwords of two users are the same, their hashed pw will be different
+  // has the password with cost of 12; default is 10
+  // The higher the value of salt is, the more cpu-intensive the process will be and the better the password will be encrypted
+  this.password = await bcrypt.hash(this.password, 12);
+  // Required input in schema definition != Required field in db
+  // Merely serve the purpose of confirmation to avoid user typing wrong password
+  // We do not need this field in db => delete passwordConfirm field
+  this.passwordConfirm = undefined;
+  next();
 });
 
 const User = mongoose.model('User', userSchema);
