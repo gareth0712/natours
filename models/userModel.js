@@ -65,6 +65,13 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000; // Sometimes the JWT is created before the passwordChangedAt timestamp, in that case the jwt will be immediately become invalid => - 1000 to eliminate this case
+  next();
+});
+
 // Instance method: Method that is available for all documents of a certain collection
 // Create the method here to as it is related to the data itself and to fulfill the MVC architecture that model handles the business logic in checking password
 userSchema.methods.correctPassword = async (
