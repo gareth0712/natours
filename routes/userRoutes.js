@@ -8,7 +8,12 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
 router.post('/forgotPassword', authController.forgotPassword);
-router.patch('/resetPassword/:token', authController.resetPassword); // patch as we will update the password for user
+router.patch('/resetPassword/:token', authController.resetPassword); // use patch as we change / maniuplate the document
+router.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword
+);
 
 router
   .route('/')
