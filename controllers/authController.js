@@ -61,4 +61,50 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.protect = catchAsync(async (req, res, next) => {
+  let token;
+  // 1) Getting token and check if it exists
+  if (
+    // Tokens in req header
+    // { authorization: 'Bearer o3j2ofsnvlks!', ... }
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get access.', 401)
+    );
+  }
+  // 2) Verification of token: Whether token is manipulated / expired
+  // jwt.verify is a asynchoronous function that will run the callback func after finish verification, i.e. jwt.verify(token, secret, callback)
+  // without supplying a callback, it is a synchoronous function
+  // To avoid breaking our pattern of using async/await + promises all the time, we promisify it so that we can use async/await on it
+  // promisify(jwt.verify) becomes a promise and takes the following arguments to resolve it
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  console.log(decoded);
+
+  // 3) Check if user still exists
+  // Need to tackle if the user gets deleted after token is issued
+  const user = await User.findById(decoded.id);
+  if (!user)
+    return next(
+      new AppError('The user belonging to this token no longer exists ', 401)
+    );
+
+  // 4) Check if user changed password after the JWT was issued
+  // If someone stole user account and use it. User then changed password to stop him using the account. The JWT issued before the password change should become invalid
+  if (user.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password. Please log in again', 401)
+    );
+  }
+
+  // Grant access to protected route
+  req.user = user;
+  next();
+});
+
 };
