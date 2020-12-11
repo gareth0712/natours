@@ -92,6 +92,25 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   return false;
 };
 
+userSchema.methods.createPasswordResetToken = function () {
+  // No need to be cryptographically strong as the hashed PW, so use built-in crypto module
+  // Only user will have access to this token to reset password => Before user reset the pw, this token serves as a password for user
+  // Random Bytes converted to Hexadecimal string
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // We store encrypted token/password only in DB
+  this.passwordResetToken = crypto
+    .createHash('sha256') // calculate a hash
+    .update(resetToken) // update method: push data to later be turned into a hash with the digest method => Encrypt the resetToken with sha256
+    .digest('hex'); // Store it as a Hexadecimal
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
