@@ -3,6 +3,8 @@ const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -12,7 +14,7 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 // 1) GLOBAL Middlewares
-// Set security HTTP headers
+// Helmet() returns a number of middleware functions that help set security HTTP headers
 app.use(helmet());
 
 // For dev logging
@@ -34,6 +36,16 @@ app.use('/api', limiter);
 // Body parser, reading data from body and store into req.body
 // and limit the req body to 10kb or it will reject the request body
 app.use(express.json({ limit: '10kb' }));
+
+// Data Sanitization against NoSQL query injection
+// The function returns a middleware function that can then be used upon handling requests
+// It will remove all the dollar sign and dots, e.g. { "$gt": "" } will not work
+app.use(mongoSanitize());
+
+// Data Sanitization against XSS attacks
+// Clean user input from malicious html/js code
+// We do protection in the schema definition. With this, we further protect against improper user input
+app.use(xss());
 
 // Serve static files
 app.use(express.static(`${__dirname}/public`));
