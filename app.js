@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -46,6 +47,22 @@ app.use(mongoSanitize());
 // Clean user input from malicious html/js code
 // We do protection in the schema definition. With this, we further protect against improper user input
 app.use(xss());
+
+// Prevent HTTP Parameter Pollution
+// e.g. duplicate sort in getAllTour will crash the query
+app.use(
+  hpp({
+    // Input parameter to Whitelist allows duplication
+    whitelist: [
+      'duration',
+      'ratingsAverage',
+      'difficulty',
+      'maxGroupSize',
+      'ratingsQuantity',
+      'price',
+    ],
+  })
+);
 
 // Serve static files
 app.use(express.static(`${__dirname}/public`));
