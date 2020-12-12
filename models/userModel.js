@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 // pre save middleware (Encryption) runs between the moment we receive the data and persist the data into DB
@@ -69,6 +74,13 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000; // Sometimes the JWT is created before the passwordChangedAt timestamp, in that case the jwt will be immediately become invalid => - 1000 to eliminate this case
+  next();
+});
+
+// find. find and update, find and delete etc
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ active: { $ne: false } });
   next();
 });
 

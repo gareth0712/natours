@@ -49,6 +49,17 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user._id, { active: false });
+
+  console.log(req.user);
+  res.status(204).json({
+    // 204 Won't return content in postman but keep good practice to return json
+    status: 'success',
+    data: null,
+  });
+});
+
   res.status(500).json({
     status: 'error',
     message: 'This route is not yet defined',
