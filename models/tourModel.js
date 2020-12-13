@@ -90,6 +90,40 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // For Geospatial data, we need to create a new object with at least 2 fields: coordinates and type
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    // Embedded documents: using array to store the locations
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // guides: Array, + pre-save middleware for embedding guides below=> embedded document
+    guides: [
+      // Reference
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   // Schema options
   {
@@ -119,6 +153,14 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// pre-saved middleware for embedding guides
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id)); // array.map will merely assign the promises to new array
+//   this.guides = await Promise.all(guidesPromises); // Need to consume the promises in guidesPromises
+
+//   next();
+// });
+
 // .post indicates that it is a post-save middleware
 // It executes after all pre middleware completed
 // It has access to not only next function,but also to the document just saved
@@ -128,7 +170,7 @@ tourSchema.post('save', function (doc, next) {
   next();
 });
 
-// Query Middleware
+// 2. Query Middleware
 // .pre + 'find' => Query middleware => 'this' in query middleware is a query object
 // When we execute Tour.find() in tourController, i.e. "await features.query",
 // right before it executes, this query middleware will be executed first
@@ -139,6 +181,16 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+// "guides" are referencing users and when we query a tour, the guide info can be "linked up" using populate
+// Populate will create another query => Performance will be affected if it's used in large scale / too often
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
+  next();
+});
+
 // .post + 'find' => Post query middleware
 // Query has finished at this point and so the function has access to the query object with result
 tourSchema.post(/^find/, function (docs, next) {
@@ -146,7 +198,7 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
-// Aggregation Middleware
+// 3. Aggregation Middleware
 // 'this' points to the current aggregation object
 // pipeline function returns an array of the aggregation pipelines with stages
 tourSchema.pre('aggregate', function (next) {
