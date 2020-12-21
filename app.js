@@ -87,7 +87,7 @@ app.use((req, res, next) => {
 // The following process is called mounting a new router on a route
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/routes', reviewRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 // All HTTP methods; * stands for everything
 app.all('*', (req, res, next) => {
