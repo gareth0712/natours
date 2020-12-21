@@ -140,6 +140,16 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate instead of child referencing as we do not want the reviews array to grow indefinitely
+// Solely virtual populate "reviews" here is not enough to show the "reviews" field in API
+// In the API, e.g. getTour API, we need to add populate('reviews') to Tour.findById(req.params.id)
+// To ensure it gets shown
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
+
 // Mongoose middleware
 
 // 1. Document middleware
