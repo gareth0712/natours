@@ -16,53 +16,8 @@ exports.aliasTourName = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  // Build query
-  // Query: method 1 - using filter in find
-  // const tours = await Tour.find({ difficulty: 'easy' });
-  // Query: method 2 - mongoose alternative method
-  // const tours = await Tour.find().where('difficulty').equals('easy');
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  // Execute query - Await only at the end after it finishes handling pagination, sort etc
-  const tours = await features.query;
-
-  // not handling tour == null as error since it is not an error when user's query returns no record
-
-  // Send response
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id).populate('reviews');
-  // Shorthand for findOne()
-  // Tour.findOne({ _id: req.params.id })
-
-  // tour will return null if params don't match any document
-  if (!tour) {
-    // Once we pass parameter to next fn, it assumes that it is an error
-    // And will then jump to the global error handling middleware in the stack
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
+exports.getAllTours = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 exports.createTour = factory.createOne(Tour);
 exports.updateTour = factory.updateOne(Tour);
 exports.deleteTour = factory.deleteOne(Tour);

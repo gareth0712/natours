@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
 // A function returning another handler function
 // closure chain
@@ -50,6 +51,53 @@ exports.createOne = (Model) =>
     });
   });
 
+exports.getOne = (Model, popOptions) =>
+  catchAsync(async (req, res, next) => {
+    // Storing the query in a variable instead of awaiting it right away
+    let query = Model.findById(req.params.id);
+    // Manipulate the query before awaiting it
+    if (popOptions) query = query.populate(popOptions);
+    const doc = await query;
+
+    if (!doc) {
+      return next(new AppError('No document found with that ID', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        data: doc,
+      },
+    });
+  });
+
+exports.getAll = (Model) =>
+  catchAsync(async (req, res, next) => {
+    // Applies to nested GET all Reviews on tour (hack)
+    let filter = {};
+    if (req.params.tourId) filter = { tour: req.params.tourId };
+
+    const features = new APIFeatures(Model.find(filter), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+
+    // Execute query - Await only at the end after it finishes handling pagination, sort etc
+    const documents = await features.query;
+
+    // not handling tour == null as error since it is not an error when user's query returns no record
+
+    // Send response
+    res.status(200).json({
+      status: 'success',
+      results: documents.length,
+      data: {
+        data: documents,
+      },
+    });
+  });
+
 // exports.updateTour = catchAsync(async (req, res, next) => {
 //   // findByIdAndUpdate method
 //   // 1st: id to identify the doc
@@ -93,6 +141,53 @@ exports.createOne = (Model) =>
 //     status: 'success',
 //     data: {
 //       tour: newTour,
+//     },
+//   });
+// });
+
+// exports.getTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findById(req.params.id).populate('reviews');
+//   // Shorthand for findOne()
+//   // Tour.findOne({ _id: req.params.id })
+
+//   // tour will return null if params don't match any document
+//   if (!tour) {
+//     // Once we pass parameter to next fn, it assumes that it is an error
+//     // And will then jump to the global error handling middleware in the stack
+//     return next(new AppError('No tour found with that ID', 404));
+//   }
+
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
+
+// exports.getAllTours = catchAsync(async (req, res, next) => {
+//   // Build query
+//   // Query: method 1 - using filter in find
+//   // const tours = await Tour.find({ difficulty: 'easy' });
+//   // Query: method 2 - mongoose alternative method
+//   // const tours = await Tour.find().where('difficulty').equals('easy');
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
+
+//   // Execute query - Await only at the end after it finishes handling pagination, sort etc
+//   const tours = await features.query;
+
+//   // not handling tour == null as error since it is not an error when user's query returns no record
+
+//   // Send response
+//   res.status(200).json({
+//     status: 'success',
+//     results: tours.length,
+//     data: {
+//       tours,
 //     },
 //   });
 // });
