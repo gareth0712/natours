@@ -2,6 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const Users = require('../models/userModel');
 const AppError = require('../utils/appError');
 const User = require('../models/userModel');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -75,33 +76,6 @@ exports.getUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateUser = catchAsync(async (req, res, next) => {
-  const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!updatedUser) {
-    return next(new AppError('No user found with that ID', 404));
-  }
-
-  res.status(204).json({
-    status: 'success',
-    data: {
-      updatedUser,
-    },
-  });
-});
-
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(req.params.id, { active: false });
-
-  if (!user) {
-    return next(new AppError('No user found with that ID', 404));
-  }
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+// Do NOT update passwords with this
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);
