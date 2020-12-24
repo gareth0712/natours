@@ -37,6 +37,19 @@ exports.deleteOne = (Model) =>
     });
   });
 
+exports.createOne = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const newDoc = await Model.create(req.body);
+
+    res.status(201).json({
+      // 201 stands for created
+      status: 'success',
+      data: {
+        data: newDoc,
+      },
+    });
+  });
+
 // exports.updateTour = catchAsync(async (req, res, next) => {
 //   // findByIdAndUpdate method
 //   // 1st: id to identify the doc
@@ -69,5 +82,17 @@ exports.deleteOne = (Model) =>
 //   res.status(204).json({
 //     status: 'success',
 //     data: null,
+//   });
+// });
+
+// exports.createTour = catchAsync(async (req, res, next) => {
+//   const newTour = await Tour.create(req.body);
+
+//   res.status(201).json({
+//     // 201 stands for created
+//     status: 'success',
+//     data: {
+//       tour: newTour,
+//     },
 //   });
 // });
