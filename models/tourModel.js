@@ -125,13 +125,23 @@ const tourSchema = new mongoose.Schema(
       },
     ],
   },
-  // Schema options
   {
     // When output as JSON / Object, we want virtuals to be part of the output
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
+
+// INDEX
+// With index, MongoDB can use the index to limit the number of documents it must inspect
+// Each index uses resources (Index will be Updated when the underlying collection updates) => Create index for fields that user queries the most
+// If a field is set to unique, e.g. name, Mongodb will create a unique index by default
+// We can also create index to make query faster => To prove it's faster, we use the explain() method for query to check how many docs are examined
+// 1 means the index is sorted in ascending order while -1 is the opposite
+// Compound index works also if we query for one of the fields inside compound index individually
+// Therefore, when we create compound index, we don't need to create individual index for fields inside the compound index
+tourSchema.index({ price: 1, ratingsAverage: -1 }); // Compound index
+tourSchema.index({ slug: 1 });
 
 // Virtual properties are properties that are defined in schema but not persistent as they can be derived from other fields to save db space
 // Business logic better be handled in model instead of controller, which handles application logic

@@ -85,6 +85,8 @@ exports.getAll = (Model) =>
 
     // Execute query - Await only at the end after it finishes handling pagination, sort etc
     const documents = await features.query;
+    // In case need to verify the performance of query we use explain the method
+    // const documents = await features.query.explain();
 
     // not handling tour == null as error since it is not an error when user's query returns no record
 
