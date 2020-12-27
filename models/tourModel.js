@@ -213,6 +213,7 @@ tourSchema.pre(/^find/, function (next) {
 
 // .post + 'find' => Post query middleware
 // Query has finished at this point and so the function has access to the query object with result
+// We cannot execute methods like find/fineOne etc
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${(Date.now() - this.start) / 1000} seconds`);
   next();
