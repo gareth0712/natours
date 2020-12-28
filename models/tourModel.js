@@ -143,6 +143,8 @@ const tourSchema = new mongoose.Schema(
 // Therefore, when we create compound index, we don't need to create individual index for fields inside the compound index
 tourSchema.index({ price: 1, ratingsAverage: -1 }); // Compound index
 tourSchema.index({ slug: 1 });
+// We don't use 1 or -1 for special data field. For geospatial data, use '2dsphere' for GeoJSON
+tourSchema.index({ startLocation: '2dsphere' });
 
 // Virtual properties are properties that are defined in schema but not persistent as they can be derived from other fields to save db space
 // Business logic better be handled in model instead of controller, which handles application logic
