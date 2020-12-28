@@ -43,6 +43,7 @@ const tourSchema = new mongoose.Schema(
       // This validator works for dates and numbers
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10, // Math.round by default round to nearest integer
     },
     ratingsQuantity: {
       type: Number,
