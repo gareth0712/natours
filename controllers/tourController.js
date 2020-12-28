@@ -148,3 +148,46 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  // unit is the resulting distance unit, by default it returns meters which is not very readable
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621361 : 0.001; // from m to mi vs from m to km
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng'
+      ),
+      400
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      // Always need to be the first stage; at least 1 of the fields of the model contains geospatial index
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1], // lng comes first in mongodb coordinates; * 1 to convert to no.
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier, // from m to km
+      },
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
+});

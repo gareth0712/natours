@@ -226,7 +226,11 @@ tourSchema.post(/^find/, function (docs, next) {
 // 'this' points to the current aggregation object
 // pipeline function returns an array of the aggregation pipelines with stages
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  // geoNear must be the first stage
+  if (!('$geoNear' in this.pipeline()[0])) {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  }
+  console.log(this.pipeline());
   next();
 });
 
