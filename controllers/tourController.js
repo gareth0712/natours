@@ -11,16 +11,26 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.aliasTourName = (req, res, next) => {
-  req.query.fields = 'name';
-  next();
-};
-
 exports.getAllTours = factory.getAll(Tour);
 exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 exports.createTour = factory.createOne(Tour);
 exports.updateTour = factory.updateOne(Tour);
 exports.deleteTour = factory.deleteOne(Tour);
+
+exports.getNames = catchAsync(async (req, res, next) => {
+  const tours = await Tour.aggregate([
+    {
+      $project: {
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: tours,
+  });
+});
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   // Returns an aggregate object
